@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-slave
+  namespace: redis
+spec:
+  serviceName: "redis-slave"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: redis
+      role: slave
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: slave
+    spec:
+      containers:
+      - name: redis
+        image: redis:latest
+        ports:
+        - containerPort: 6379
+        args:
+          - "--replicaof"
+          - "redis-master.redis.svc.cluster.local"
+          - "6379"
+          - "--requirepass"
+          - "$(REDIS_PASSWORD)"  # Redis slaves will authenticate with the master using this password
+        env:
+        - name: REDIS_PASSWORD
+          value: "ABCD"  # Password for Redis
